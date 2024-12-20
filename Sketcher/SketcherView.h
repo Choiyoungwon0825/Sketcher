@@ -36,6 +36,9 @@ public:
 #endif
 
 protected:
+	CPoint m_FirstPoint; // 요소에 대해 처음으로 기록된 점
+	CPoint m_SecondPoint; // 요소에 대해 두 번째로 기록된 점
+	CElement* m_pTempElement; // 임시 요소에 대한 포인터 
 
 // 생성된 메시지 맵 함수
 protected:
@@ -48,6 +51,9 @@ public:
 	afx_msg void OnColorBlue();
 	afx_msg void OnColorGreen();
 	afx_msg void OnColorRed();
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 };
 
 #ifndef _DEBUG  // SketcherView.cpp의 디버그 버전
