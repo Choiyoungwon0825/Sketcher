@@ -21,11 +21,14 @@ END_MESSAGE_MAP()
 
 // CChildFrame 생성/소멸
 
+// 생성 컨스트럭터
 CChildFrame::CChildFrame() noexcept
 {
 	// TODO: 여기에 멤버 초기화 코드를 추가합니다.
 }
 
+
+// 소멸 컨스트럭터
 CChildFrame::~CChildFrame()
 {
 }

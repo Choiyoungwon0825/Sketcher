@@ -221,7 +221,7 @@ CElement* CSketcherView::CreateElement()
 
 	default:
 		// 무엇인가 잘못됨
-		AfxMessageBox("Bad Element code", MB_OK);
+		AfxMessageBox("잘못된 접근", MB_OK);
 		AfxAbort();
 		return NULL;
 	}

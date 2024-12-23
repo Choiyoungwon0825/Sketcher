@@ -101,6 +101,9 @@
     <ClCompile Include="Elements.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="CArray개념.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Sketcher.reg" />
