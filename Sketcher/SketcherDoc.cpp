@@ -1,13 +1,13 @@
 ﻿
 // SketcherDoc.cpp: CSketcherDoc 클래스의 구현
 //
-
 #include "pch.h"
 #include "framework.h"
 // SHARED_HANDLERS는 미리 보기, 축소판 그림 및 검색 필터 처리기를 구현하는 ATL 프로젝트에서 정의할 수 있으며
 // 해당 프로젝트와 문서 코드를 공유하도록 해 줍니다.
 #ifndef SHARED_HANDLERS
 #include "Sketcher.h"
+
 #endif
 
 #include "SketcherDoc.h"
@@ -31,7 +31,6 @@ BEGIN_MESSAGE_MAP(CSketcherDoc, CDocument)
 	ON_COMMAND(ID_ELEMENT_CURVE, &CSketcherDoc::OnElementCurve)
 	ON_COMMAND(ID_ELEMENT_LINE, &CSketcherDoc::OnElementLine)
 	ON_COMMAND(ID_ELEMENT_RECTANGLE, &CSketcherDoc::OnElementRectangle)
-
 	ON_UPDATE_COMMAND_UI(ID_COLOR_BLACK, &CSketcherDoc::OnUpdateColorBlack)
 	ON_UPDATE_COMMAND_UI(ID_COLOR_BLUE, &CSketcherDoc::OnUpdateColorBlue)
 	ON_UPDATE_COMMAND_UI(ID_COLOR_GREEN, &CSketcherDoc::OnUpdateColorGreen)
@@ -48,6 +47,8 @@ END_MESSAGE_MAP()
 CSketcherDoc::CSketcherDoc() noexcept
 {
 	// TODO: 여기에 일회성 생성 코드를 추가합니다.
+	m_Element = LINE;
+	m_Color = GREEN;
 
 }
 
@@ -158,6 +159,7 @@ void CSketcherDoc::OnColorBlack()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Color = BLACK; // 드로잉 색을 검은색으로 설정
+	
 }
 
 

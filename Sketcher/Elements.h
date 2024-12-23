@@ -2,6 +2,7 @@
 #define Elements_h
 #pragma once
 
+#include <math.h>
 
 // 일반적인 요소 클래스
 class CElement : public CObject
@@ -38,7 +39,7 @@ public:
 protected:
 	CPoint m_StartPoint;	// 선의 시작점
 	CPoint m_EndPoint;		// 선의 끝점
-	
+
 
 	CLine() {}				// 디폴트 컨스트럭터 - 사용되어선 안된다.
 };
@@ -46,18 +47,41 @@ protected:
 // 직사각형 객체를 정의하는 클래스
 class CRectangle : public CElement
 {
-	// 클래스 정의를 여기에 추가하라.
+public:
+	virtual void Draw(CDC* pDC) const; // 직사각형을 나타내는 함수
+
+	// 직사각형 객체에 대한 컨스트럭터
+	CRectangle(const CPoint& Start, const CPoint& End, const COLORREF& Color,
+		const int& PenWidth);
+
+protected:
+	CRectangle() {}	 //디폴트 컨스트럭터 - 사용되어서는 안된다.
 };
 
 // 원 객체를 정의하는 클래스
 class CCircle : public CElement
 {
 	// 클래스 정의를 여기에 추가하라.
+public:
+	virtual void Draw(CDC* pDC) const; // 원을 나타내는 함수
+	// 원 객체에 대한 컨스트럭터
+	CCircle(const CPoint& Start, const CPoint& End, const COLORREF& Color, const int& PenWidth);
+
+protected:
+	CCircle() {}
 };
 
 // 곡선 객체를 정의하는 클래스
 class CCurve : public CElement
 {
 	// 클래스 정의를 여기에 추가하라.
+public:
+	virtual void Draw(CDC* pDC) const; // 곡선을 나타내는 함수
+	// 곡선 객체에 대한 컨스트럭터
+
+	CCurve(const COLORREF& Color, const int& PenWidth);
+
+protected:
+	CCurve() {}
 };
 #endif
