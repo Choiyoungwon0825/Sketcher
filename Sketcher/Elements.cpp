@@ -19,10 +19,13 @@ CLine::CLine(const CPoint& Start, const CPoint& End, const COLORREF& Color, cons
 }
 
 // CLine 객체를 그린다.
-void CLine::Draw(CDC* pDC) const
+void CLine::Draw(CDC* pDC, const CElement* pElement) const
 {
 	// 이 객체에 대한 펜을 생성하며, 그것을 객체 색깔과 선 폭으로 초기화한다.
 	CPen aPen;
+	COLORREF aColor = m_Color;	// 요소 색깔로 초기화
+	if (this == pElement)		// 이 요소가 선택되었는가?
+		aColor = SELECT_COLOR;	// 반전되는 색깔 설정
 
 	if (!aPen.CreatePen(PS_SOLID, m_Pen, m_Color))
 	{
@@ -65,19 +68,54 @@ CCircle::CCircle(const CPoint& Start, const CPoint& End, const COLORREF& Color, 
 	m_EnclosingRect = CRect(Start.x - Radius, Start.y - Radius, Start.x + Radius, Start.y + Radius);
 
 	m_Color = Color; // 원 색 설정
-	m_Pen = PenWidth; // 펜 폭 설정
+	m_Pen = 1; // 펜 폭 설정
 
 }
 // 곡선 객체에 대한 컨스트럭터
-CCurve::CCurve(const COLORREF& Color, const int& PenWidth)
+CCurve::CCurve(const CPoint& FirstPoint, const CPoint& SecondPoint, const COLORREF& Color, const int& PenWidth)
 {
+	m_PointList.AddTail(FirstPoint);
+	m_PointList.AddTail(SecondPoint);
+
+
 	m_Color = Color; // 색 저장
-	m_EnclosingRect = CRect(0, 0, 0, 0);
 	m_Pen = 1;		// 펜 폭 설정
+
+	// MM_TEXT 
+	m_EnclosingRect = CRect(FirstPoint, SecondPoint);
+	m_EnclosingRect.NormalizeRect();
 }
+
+
 // 곡선을 그린다.
 void CCurve::Draw(CDC* pDC) const
 {
+	// 이 객체에 대한 펜을 생성하며, 그것을 객체 색과 1픽셀 선의 폭으로 초기화한다.
+	CPen aPen;
+
+	if (!aPen.CreatePen(PS_SOLID, m_Pen, m_Color))
+	{
+		// 펜 생성이 실패하였다. 프로그램을 종료한다.
+		AfxMessageBox("Pen creation failed drawing a curve", MB_OK);
+		AfxAbort();
+	}
+
+	CPen* pOldPen = pDC->SelectObject(&aPen); // 펜을 선택한다.
+
+	// 이제 곡선을 그린다.
+	// 첫번째 요소의 리스트에서 위치를 얻는다.
+
+	POSITION aPosition = m_PointList.GetHeadPosition();
+
+	// 그것이 유효하다며, 그 곳으로 이동한다.
+	if (aPosition)
+		pDC->MoveTo(m_PointList.GetNext(aPosition));
+
+	// 다음에 나타나는 각 점들에 대해 세그먼트를 그린다.
+	while (aPosition)
+		pDC->LineTo(m_PointList.GetNext(aPosition));
+
+	pDC->SelectObject(pOldPen); // 이전 펜 복구
 }
 
 // CRectangle 객체를 그린다.
@@ -130,7 +168,44 @@ void CCircle::Draw(CDC* pDC) const
 	pDC->SelectObject(pOldPen);				// 이전 펜 복구
 }
 
+void CCurve::AddSegment(const CPoint& Point)
+{
+	m_PointList.AddTail(Point);
 
+	m_EnclosingRect = CRect(
+		min(Point.x, m_EnclosingRect.left),
+		min(Point.y, m_EnclosingRect.top),
+		max(Point.x, m_EnclosingRect.right),
+		max(Point.y, m_EnclosingRect.bottom));
+}
+
+void CLine::Move(const CSize& aSize)
+{
+	m_StartPoint += aSize;			// 시작점과 끝점을 이동시킨다.
+	m_EndPoint += aSize;
+	m_EnclosingRect += aSize;		// 둘러싸는 직사각형을 이동시킨다.
+}
+
+void CRectangle::Move(const CSize& aSize)
+{
+	m_EnclosingRect += aSize;	// 직사각형을 이동시킨다.
+}
+
+void CCircle::Move(const CSize& aSize)
+{
+	m_EnclosingRect += aSize;	// 직사각형을 이동시킨다.
+}
+
+void CCurve::Move(const CSize& aSize) {
+	m_EnclosingRect += aSize;	// 직사각형을 이동시킨다.
+
+	// 첫 번째 요소 위치를 얻는다.
+	POSITION aPosition = m_PointList.GetHeadPosition();
+
+	while (aPosition)
+		m_PointList.GetNext(aPosition) += aSize; // 리스트 안 각 점을 이동시킨다.
+
+}
 
 
 // 요소를 둘러싸는 직사각형을 얻는다.

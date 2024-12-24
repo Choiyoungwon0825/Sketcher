@@ -1,10 +1,7 @@
-﻿
-// SketcherDoc.h: CSketcherDoc 클래스의 인터페이스
-//
-
+﻿// SketcherDoc.h: CSketcherDoc 클래스의 인터페이스
 
 #pragma once
-
+#include "Elements.h"
 
 class CSketcherDoc : public CDocument
 {
@@ -16,25 +13,49 @@ protected: // serialization에서만 만들어집니다.
 public:
 
 protected:
-	COLORREF m_Color;
-	WORD m_Element;
+	COLORREF m_Color; // 현재 드로잉 색깔
+	WORD m_Element;	  // 현재 요소 형식
 	int m_PenWidth = 1;
+
+	CTypedPtrList<CObList, CElement*> m_ElementList; // 요소 리스트
 
 	// 작업입니다.
 public:
 	WORD GetElementType() const
 	{
-		return m_Element;
+		return m_Element; // 요소 형식을 얻는다.
 	}
 
 	COLORREF GetElementColor() const
 	{
-		return m_Color;
-		
+		return m_Color;  // 요소 색깔을 얻는다.
+
 	}
 
 	int GetPenWidth() const {
 		return m_PenWidth;
+	}
+
+	void AddElement(CElement* pElement) {
+		m_ElementList.AddTail(pElement); // 요소를 리스트에 추가한다.
+	}
+
+	void DeleteElement(CElement* pElement); // 요소를 삭제한다.
+
+	POSITION GetListHeadPosition() const {
+		return m_ElementList.GetHeadPosition();
+	}
+
+	CElement* GetNext(POSITION& aPos) const{
+		return m_ElementList.GetNext(aPos); // 현재 요소 포인터를 리턴한다.
+	}
+
+	POSITION GetListTailPosition() const {
+		return m_ElementList.GetTailPosition();	// 리스트 끝의 POSITION 값을 리턴
+	}
+
+	CElement* GetPrev(POSITION& aPos) const {
+		return m_ElementList.GetPrev(aPos);	// 현재 요소 포인터를 리턴한다.
 	}
 
 	// 재정의입니다.
@@ -81,6 +102,4 @@ protected:
 	// 검색 처리기에 대한 검색 콘텐츠를 설정하는 도우미 함수
 	void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
-public:
-
 };

@@ -20,17 +20,19 @@
 
 // CSketcherView
 
-IMPLEMENT_DYNCREATE(CSketcherView, CView)
+IMPLEMENT_DYNCREATE(CSketcherView, CScrollView)
 
-BEGIN_MESSAGE_MAP(CSketcherView, CView)
+BEGIN_MESSAGE_MAP(CSketcherView, CScrollView)
 	// 표준 인쇄 명령입니다.
-	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
-	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CSketcherView::OnFilePrintPreview)
+	ON_COMMAND(ID_FILE_PRINT, &CScrollView::OnFilePrint)
+	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CScrollView::OnFilePrint)
+	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CScrollView::OnFilePrintPreview)
 
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_WM_RBUTTONUP()
+	ON_WM_RBUTTONDOWN()
 END_MESSAGE_MAP()
 
 // CSketcherView 생성/소멸
@@ -41,8 +43,10 @@ CSketcherView::CSketcherView() noexcept
 	m_FirstPoint = CPoint(0, 0); // 처음으로 기록된 점을 0,0으로 설정한다.
 	m_SecondPoint = CPoint(0, 0); // 두번째로 기록된 점을 0,0으로 설정한다.
 	m_pTempElement = NULL; // 임시 요소 포인터를 0으로 설정한다.
-
-
+	m_pSelected = NULL;		// 초기에 어떤 요소도 선택되지 않았다.
+	m_MoveMode = FALSE;		// 이동 모드를 off로 설정한다.
+	m_CursorPos = CPoint(0, 0);		// 0으로 초기화한다.
+	m_FirstPos = CPoint(0, 0);		// 0으로 초기화한다.
 
 }
 
@@ -65,44 +69,18 @@ void CSketcherView::OnDraw(CDC* pDC)
 {
 	CSketcherDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
-	//if (!pDoc)
-	//	return;
-
-	//// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
-
-	//pDC->MoveTo(50, 50); // 현재 위치 설정
-	//pDC->LineTo(50, 200); // 아래 방향으로 150unit 만큼 수직선을 그린다.
-	//pDC->LineTo(150, 200); // 오른쪽 방향으로 100unit만큼 수평선을 그린다.
-	//pDC->LineTo(150, 50); // 윗쪽 방향으로 150unit만큼 수직선을 그린다.
-	//pDC->LineTo(50, 50); // 왼쪽 방향으로 150 unit만큼 수직선을 그린다.
-
-	//pDC->Arc(50, 50, 150, 150, 100, 50, 150, 100); // 첫번째의 가장 큰 원을 그린다
-
-	//// 펜 객체를 선언하며, 그것을 2픽셀 폭을 갖는 빨간 실선 펜으로서 초기화한다.
-	//CPen aPen;
-	//aPen.CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
-
-	//CPen* pOldPen = pDC->SelectObject(&aPen);	// aPen을 펜으로써 선택한다.
 
 
-	//// 두번째보다 작은 원을 감싸는 직사각형을 정의한다.
-	//CRect* pRect = new CRect(250, 50, 300, 100);
-	//CPoint Start(275, 100);  // 호의 시작점
-	//CPoint End(250, 75);     // 호의 끝점
-	//pDC->Arc(pRect, Start, End); // 두번째 원을 그린다.
-	//delete pRect;
+	POSITION aPos = pDoc->GetListHeadPosition();
+	CElement* pElement = 0; // 요소 포인터를 저장한다.
+	while (aPos) {			// aPos가 null이 아닌 한 루프를 돈다.
 
-	//pDC->SelectObject(pOldPen);
+		pElement = pDoc->GetNext(aPos); // 현재 요소 포인터를 얻는다.
 
-	/*
-	CBrush aBrush(RGB(255, 0, 0)); // 빨간색 브러시 정의
-
-	CBrush aBrush; // 브러시 객체 정의
-
-	aBrush.CreateHatchBrush(HS_DIAGCROSS, RGB(255, 0, 0));
-
-	pDC - SelectObject(&aBrush); //브러시를 디바이스 컨텍스트 안으로 선택해서 갖고온다.
-	*/
+		// 요소가 보인다면
+		if (pDC->RectVisible(pElement->GetBoundRect()))
+			pElement->Draw(pDC, m_pSelected); // 현재 요소를 그린다.
+	}
 }
 
 
@@ -155,24 +133,75 @@ CSketcherDoc* CSketcherView::GetDocument() const // 디버그되지 않은 버�
 void CSketcherView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	// 뷰에 대한 Device Context 객체를 정의한다.
 	CClientDC aDC(this);
+	OnPrepareDC(&aDC);				// 원점이 조정되도록 한다.
+
+	// 만약 우리가 이동 모드에 있다면 선택된 요소를 이동시키고 리턴한다.
+	if (m_MoveMode)
+	{
+		aDC.DPtoLP(&point);			// 논리 좌표로 변환시킨다.
+		MoveElement(aDC, point);	// 요소를 이동시킨다.
+		return;
+	}
+
 	aDC.SetROP2(R2_NOTXORPEN);    // Set the drawing mode
 	if ((nFlags & MK_LBUTTON) && (this == GetCapture()))
 	{
+		aDC.DPtoLP(&point);			// 점이 논리 좌표로 변환
 		m_SecondPoint = point;     // Save the current cursor position
 
 		if (m_pTempElement)
 		{
+
+			if (CURVE == GetDocument()->GetElementType())
+			{
+				// 곡선을 그리고있다.
+				// 그러므로 세그먼트를 기존 곡선에 추가한다.
+				(static_cast<CCurve*>(m_pTempElement))->AddSegment(m_SecondPoint);
+				m_pTempElement->Draw(&aDC);	// 이제, 그것을 그린다.
+				return;						// 작업이 끝났다.
+			}
+			aDC.SetROP2(R2_NOTXORPEN); // 드로잉 모드를 설정한다.
+
 			// Redraw the old element so it disappears from the view
 			m_pTempElement->Draw(&aDC);
 			delete m_pTempElement;        // Delete the old element
 			m_pTempElement = 0;           // Reset the pointer to 0
+
 		}
 
 		// Create a temporary element of the type and color that
 		// is recorded in the document object, and draw it
 		m_pTempElement = CreateElement();  // Create a new element
 		m_pTempElement->Draw(&aDC);        // Draw the element
+	}
+	else				// 우리는 요소를 그리고있다.
+	{					// 그러므로 반전시킨다.
+		CRect aRect;
+		CElement* pCurrentSelection = SelectElement(point);
+
+		if (pCurrentSelection != m_pSelected)
+		{
+			if (m_pSelected)	// 이전 요소가 선택되었는가?
+			{
+				aRect = m_pSelected->GetBoundRect(); // 범위를 정하는 직사각형을 얻는다.
+				aDC.LPtoDP(aRect);					// 디바이스 좌표로 변환시킨다.
+				aRect.NormalizeRect();				// 노말라이즈한다.
+				InvalidateRect(aRect, FALSE);		// 영역을 무효화한다.
+			}
+			m_pSelected = pCurrentSelection;		// 커서 밑에 있는 요소를 저장한다.
+
+			if (m_pSelected)
+			{
+				aRect = m_pSelected->GetBoundRect(); // 범위를 정하는 직사각형을 얻는다.
+				aDC.LPtoDP(aRect);					// 디바이스 좌표로 변환시킨다.
+				aRect.NormalizeRect();				// 노말라이즈한다.
+				InvalidateRect(aRect, FALSE);		// 영역을 무효화한다.
+			}
+			m_pSelected = SelectElement(point);
+		}
 	}
 }
 
@@ -181,11 +210,16 @@ void CSketcherView::OnLButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 	if (this == GetCapture())
-		ReleaseCapture();
-	// 한 요소가 있는가를 검사한다.
+		ReleaseCapture(); // 마우스 포착중단
+
+	// 만약 요소가 있다면 그것을 도큐먼트에 추가한다.
 	if (m_pTempElement)
 	{
-		delete m_pTempElement; // 임시 코드
+		GetDocument()->AddElement(m_pTempElement);
+		GetDocument()->UpdateAllViews(0, 0, m_pTempElement);
+		// 모든 뷰들에게 알린다.
+		InvalidateRect(0); // 현재 윈도우를 다시 그린다.
+
 		m_pTempElement = 0; // 요소 포인터 리셋
 	}
 
@@ -195,15 +229,31 @@ void CSketcherView::OnLButtonUp(UINT nFlags, CPoint point)
 void CSketcherView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-	m_FirstPoint = point; // 현재 위치를 기록한다.
-	SetCapture();
+	CClientDC aDC(this); // 디바이스 컨텍스트를 생성한다.
+	OnPrepareDC(&aDC);	 // 원점이 조정되도록 한다.
+	aDC.DPtoLP(&point);  // 점이 논리 좌표로 변환한다.
+
+	if (m_MoveMode)
+	{
+		// 이동 모드에 있다. 그러므로 요소를 드롭한다.
+		m_MoveMode = FALSE; // 이동 모드를 죽인다.
+		m_pSelected = 0;	// 요소를 선택한 것을 취소시킨다.
+		GetDocument()->UpdateAllViews(0); // 모든 뷰들을 다시 그린다.
+
+	}
+	else {
+		m_FirstPoint = point; // 현재 위치를 기록한다.
+		SetCapture();		  // 이후에 나타나는 마우스 메시지를 포착한다.
+
+	}
+
 }
 
 
 
 CElement* CSketcherView::CreateElement()
 {
-	// 이 뷰에 대한 도큐먼트 포인터를 얻는다.
+	// 이 뷰에 대한 도큐먼트 포인터를 얻는다.W
 	CSketcherDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc); // 포인터가 좋다는 것을 확인한다.
 
@@ -215,7 +265,7 @@ CElement* CSketcherView::CreateElement()
 	case CIRCLE:
 		return new CCircle(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
 	case CURVE:
-		return new CCurve(pDoc->GetElementColor(), pDoc->GetPenWidth());
+		return new CCurve(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
 	case LINE:
 		return new CLine(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
 
@@ -228,3 +278,150 @@ CElement* CSketcherView::CreateElement()
 }
 
 
+
+
+void CSketcherView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+
+	// 가리켜지고 있는 요소에 대한 영역이 있다면 그것을 무효화시킨다.
+	// 그렇지 않으면 전체 영역을 무효화시킨다ㅣ.
+	if (pHint)
+	{
+		CClientDC aDC(this); // 디바이스 컨텍스트를 생성한다.
+		OnPrepareDC(&aDC);	 // 원점이 조정되도록 한다.
+		// 둘러싸는 직사각형을 얻고, 그것을 클라이언트 좌표로 변환한다.
+		CRect aRect = static_cast<CElement*>(pHint)->GetBoundRect();
+		aDC.LPtoDP(aRect);
+		aRect.NormalizeRect();
+		InvalidateRect(aRect);	// 영역이 다시 그려지게 한다.
+	}
+	else
+		InvalidateRect(0);
+}
+
+
+void CSketcherView::OnInitialUpdate()
+{
+	CScrollView::OnInitialUpdate();
+
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+
+	// 도큐먼트 크기를 MM_LOENGLISH에서 30x30 인치로 정의한다.
+	CSize DocSize(3000, 3000);
+
+	// 맵핑 모드와 도큐먼트 크기를 설정한다.
+	SetScrollSizes(MM_LOENGLISH, DocSize);
+}
+
+
+void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	// 커서 밑 요소를 찾는다.
+	if(m_MoveMode)
+	m_pSelected = SelectElement(point);
+
+	// 커서 메뉴를 생성한다.
+	CMenu aMenu;
+	aMenu.LoadMenu(IDR_CURSOR_MENU);		// 커서 메뉴를 로드한다.
+	ClientToScreen(&point);					// 화면 좌표호 변환한다.
+	
+	//팝업을 커서 위치에 나타낸다.
+	if (m_pSelected)
+		aMenu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+			point.x, point.y, this);
+	else {
+		// 색깔 메뉴 항목을 검사한다.
+		COLORREF Color = GetDocument()->GetElementColor();
+		aMenu.CheckMenuItem(ID_COLOR_BLACK,
+			(BLACK == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_COLOR_RED,
+			(RED == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_COLOR_GREEN,
+			(GREEN == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_COLOR_BLUE,
+			(BLUE == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+
+		// 요소 메뉴 항목들을 검사한다.
+		WORD ElementType = GetDocument()->GetElementType();
+		aMenu.CheckMenuItem(ID_ELEMENT_LINE,
+			(LINE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_ELEMENT_RECTANGLE,
+			(RECTANGLE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_ELEMENT_CIRCLE,
+			(CIRCLE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+		aMenu.CheckMenuItem(ID_ELEMENT_CURVE,
+			(CURVE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
+
+		// 빠른 팝업을 나타낸다.
+		aMenu.GetSubMenu(1)->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+			point.x, point.y, this);
+	}
+	CScrollView::OnRButtonUp(nFlags, point);
+}
+
+void CSketcherView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (m_MoveMode)
+	{
+		// 이동 모드에 있다. 그러므로 요소를 원래 위치로 드롭한다.
+		CClientDC aDC(this);
+		OnPrepareDC(&aDC);	// 원점이 조정되도록 한다.
+		MoveElement(aDC, m_FirstPos); // 요소를 원래 위치로 이동한다.
+		m_MoveMode = FALSE;			// 이동 모드를 죽인다.
+		m_pSelected = 0;			// 요소를 선택한 것을 취소시킨다.
+		GetDocument()->UpdateAllViews(0);	// 작업을 끝마친다.
+		return;
+	}
+
+	CScrollView::OnRButtonDown(nFlags, point);
+}
+
+
+// 커서에 있는 요소를 찾는다.
+CElement* CSketcherView::SelectElement(CPoint aPoint)
+{
+	// aPoint 파라미터를 논리좌표로 변환한다.
+	CClientDC aDC(this);
+	OnPrepareDC(&aDC);
+	aDC.DPtoLP(&aPoint);
+
+	CSketcherDoc* pDoc = GetDocument(); // 도큐먼트에 대한 포인터를 얻는다.
+	CElement* pElement = 0;				// 요소 포인터를 저장한다.
+	CRect aRect(0, 0, 0, 0);			// 직사각형을 저장한다.
+	POSITION aPos = pDoc->GetListTailPosition(); // 마지막 요소 위치를 얻는다.
+
+	while (aPos)
+	{
+		pElement = pDoc->GetPrev(aPos);
+		aRect = pElement->GetBoundRect();
+		// 커서 밑에 나타나는 첫번째 요소를 선택한다.
+		if (aRect.PtInRect(aPoint))
+			return pElement;
+	}
+	return 0;
+
+}
+
+
+void CSketcherView::MoveElement(CClientDC& aDC, const CPoint& point) {
+	CSize Distance = point - m_CursorPos;		// 이동 거리를 얻는다.
+	m_CursorPos = point;						// 현재의 점을 이 다음 작업에서 첫 번째로 설정한다.
+
+	// 만약 선택된 요소가 있다면, 그것을 이동시킨다.
+	if (m_pSelected)
+	{
+		aDC.SetROP2(R2_NOTXORPEN);
+		m_pSelected->Draw(&aDC, m_pSelected);	// 요소를 삭제하기 위해 그것을 그린다.
+		m_pSelected->Move(Distance);			// 이제, 그것을 이동시킨다.
+		m_pSelected->Draw(&aDC, m_pSelected);	// 이동된 요소를 그린다.
+	}
+}
+
+void CSketcherView::OnSendtoback()
+{
+	GetDocument()->SendToBack(m_pSelected);
+
+}

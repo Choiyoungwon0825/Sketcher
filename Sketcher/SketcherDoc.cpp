@@ -11,7 +11,7 @@
 #endif
 
 #include "SketcherDoc.h"
-
+#include "Elements.h"
 #include <propkey.h>
 
 #ifdef _DEBUG
@@ -48,12 +48,20 @@ CSketcherDoc::CSketcherDoc() noexcept
 {
 	// TODO: 여기에 일회성 생성 코드를 추가합니다.
 	m_Element = LINE;
-	m_Color = GREEN;
+	m_Color = BLACK;
 
 }
 
 CSketcherDoc::~CSketcherDoc()
 {
+	// 리스트의 맨 위의 위치를 얻는다.
+	POSITION aPosition = m_ElementList.GetHeadPosition();
+
+	// 각 리스트 항목이 가리키는 요소를 삭제한다.
+	while (aPosition)
+		delete m_ElementList.GetNext(aPosition);
+
+	m_ElementList.RemoveAll();	// 마지막으로, 모든 포인터들을 삭제한다.
 }
 
 BOOL CSketcherDoc::OnNewDocument()
@@ -265,4 +273,20 @@ void CSketcherDoc::OnUpdateElementRectangle(CCmdUI *pCmdUI)
 {
 	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
 	pCmdUI->SetCheck(m_Element == RECTANGLE);
+}
+
+void CSketcherDoc::DeleteElement(CElement* pElement)
+{
+	if (pElement)
+	{
+		// 요소 포인터가 유효하면
+		// 리스트 안에 있는 포인터를 찾아 삭제한다.
+		POSITION aPosition = m_ElementList.Find(pElement);
+		m_ElementList.RemoveAt(aPosition);
+		delete pElement;		// 힙으로부터 요소를 삭제한다.
+	}
+}
+
+void CSketcherDoc::SendToBack(CElement* pElement) {
+
 }

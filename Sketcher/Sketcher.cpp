@@ -9,6 +9,7 @@
 #include "Sketcher.h"
 #include "MainFrm.h"
 
+#include "Elements.h"
 #include "ChildFrm.h"
 #include "SketcherDoc.h"
 #include "SketcherView.h"
