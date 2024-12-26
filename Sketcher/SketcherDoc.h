@@ -15,7 +15,8 @@ public:
 protected:
 	COLORREF m_Color; // 현재 드로잉 색깔
 	WORD m_Element;	  // 현재 요소 형식
-	int m_PenWidth = 1;
+	int m_PenWidth;
+	CSize m_DocSize;
 
 	CTypedPtrList<CObList, CElement*> m_ElementList; // 요소 리스트
 
@@ -42,11 +43,13 @@ public:
 
 	void DeleteElement(CElement* pElement); // 요소를 삭제한다.
 
+	void CSketcherDoc::SendToBack(CElement* pElement);
+
 	POSITION GetListHeadPosition() const {
 		return m_ElementList.GetHeadPosition();
 	}
 
-	CElement* GetNext(POSITION& aPos) const{
+	CElement* GetNext(POSITION& aPos) const {
 		return m_ElementList.GetNext(aPos); // 현재 요소 포인터를 리턴한다.
 	}
 
@@ -56,6 +59,9 @@ public:
 
 	CElement* GetPrev(POSITION& aPos) const {
 		return m_ElementList.GetPrev(aPos);	// 현재 요소 포인터를 리턴한다.
+	}
+	CSize GetDocSize() const {
+		return m_DocSize;
 	}
 
 	// 재정의입니다.
@@ -102,4 +108,6 @@ protected:
 	// 검색 처리기에 대한 검색 콘텐츠를 설정하는 도우미 함수
 	void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
+public:
+	afx_msg void OnPenwidth();
 };

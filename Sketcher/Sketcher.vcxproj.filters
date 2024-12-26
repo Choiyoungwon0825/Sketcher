@@ -63,6 +63,9 @@
     <ClInclude Include="Elements.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="CPenDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sketcher.cpp">
@@ -104,10 +107,16 @@
     <ClCompile Include="CArray개념.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="CPenDialog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Sketcher.reg" />
     <None Include="res\Sketcher.rc2">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="res\ribbon1.mfcribbon-ms">
       <Filter>리소스 파일</Filter>
     </None>
   </ItemGroup>

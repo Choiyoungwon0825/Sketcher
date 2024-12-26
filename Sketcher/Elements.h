@@ -47,7 +47,7 @@ protected:
 class CRectangle : public CElement
 {
 public:
-	virtual void Draw(CDC* pDC) const; // 직사각형을 나타내는 함수
+	virtual void Draw(CDC* pDC ,const CElement* pElement = 0) const; // 직사각형을 나타내는 함수
 	virtual void Move(const CSize& aSize); // 요소를 이동시키는 함수
 
 	// 직사각형 객체에 대한 컨스트럭터
@@ -63,7 +63,7 @@ class CCircle : public CElement
 {
 	// 클래스 정의를 여기에 추가하라.
 public:
-	virtual void Draw(CDC* pDC) const; // 원을 나타내는 함수
+	virtual void Draw(CDC* pDC, const CElement* pElement) const; // 원을 나타내는 함수
 	virtual void Move(const CSize& aSize); // 요소를 이동시키는 함수.
 	// 원 객체에 대한 컨스트럭터
 	CCircle(const CPoint& Start, const CPoint& End, const COLORREF& Color, const int& PenWidth);
@@ -77,7 +77,7 @@ class CCurve : public CElement
 {
 	// 클래스 정의를 여기에 추가하라.
 public:
-	virtual void Draw(CDC* pDC) const; // 곡선을 나타내는 함수
+	virtual void Draw(CDC* pDC, const CElement* pElement) const; // 곡선을 나타내는 함수
 	// 곡선 객체에 대한 컨스트럭터
 	virtual void Move(const CSize& aSize);
 	CCurve(const CPoint& FirstPoint, const CPoint& SecondPoint, const COLORREF& Color, const int& PenWidth);
@@ -89,7 +89,7 @@ protected:
 	// 여기에 위치하게 될 CCurve 데이터 멤버
 
 	CList<CPoint, const CPoint&> m_PointList; // Type safe 포인트 리스트
-
+	
 	CCurve() {} // 디폴트 컨스트럭터 - 사용되어서는 안된다.
 };
 #endif

@@ -13,6 +13,7 @@
 #include "SketcherDoc.h"
 #include "SketcherView.h"
 #include "Elements.h"
+#include "CScaleDialog.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -47,6 +48,8 @@ CSketcherView::CSketcherView() noexcept
 	m_MoveMode = FALSE;		// 이동 모드를 off로 설정한다.
 	m_CursorPos = CPoint(0, 0);		// 0으로 초기화한다.
 	m_FirstPos = CPoint(0, 0);		// 0으로 초기화한다.
+	m_Scale = 1; // scale을 1:1로 설정한다.
+	SetScrollSizes(MM_TEXT, CSize(0, 0)); // 임의의 스크롤러 설정한다.
 
 }
 
@@ -69,7 +72,6 @@ void CSketcherView::OnDraw(CDC* pDC)
 {
 	CSketcherDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
-
 
 	POSITION aPos = pDoc->GetListHeadPosition();
 	CElement* pElement = 0; // 요소 포인터를 저장한다.
@@ -146,7 +148,6 @@ void CSketcherView::OnMouseMove(UINT nFlags, CPoint point)
 		return;
 	}
 
-	aDC.SetROP2(R2_NOTXORPEN);    // Set the drawing mode
 	if ((nFlags & MK_LBUTTON) && (this == GetCapture()))
 	{
 		aDC.DPtoLP(&point);			// 점이 논리 좌표로 변환
@@ -154,7 +155,6 @@ void CSketcherView::OnMouseMove(UINT nFlags, CPoint point)
 
 		if (m_pTempElement)
 		{
-
 			if (CURVE == GetDocument()->GetElementType())
 			{
 				// 곡선을 그리고있다.
@@ -200,7 +200,6 @@ void CSketcherView::OnMouseMove(UINT nFlags, CPoint point)
 				aRect.NormalizeRect();				// 노말라이즈한다.
 				InvalidateRect(aRect, FALSE);		// 영역을 무효화한다.
 			}
-			m_pSelected = SelectElement(point);
 		}
 	}
 }
@@ -218,7 +217,6 @@ void CSketcherView::OnLButtonUp(UINT nFlags, CPoint point)
 		GetDocument()->AddElement(m_pTempElement);
 		GetDocument()->UpdateAllViews(0, 0, m_pTempElement);
 		// 모든 뷰들에게 알린다.
-		InvalidateRect(0); // 현재 윈도우를 다시 그린다.
 
 		m_pTempElement = 0; // 요소 포인터 리셋
 	}
@@ -239,12 +237,10 @@ void CSketcherView::OnLButtonDown(UINT nFlags, CPoint point)
 		m_MoveMode = FALSE; // 이동 모드를 죽인다.
 		m_pSelected = 0;	// 요소를 선택한 것을 취소시킨다.
 		GetDocument()->UpdateAllViews(0); // 모든 뷰들을 다시 그린다.
-
 	}
 	else {
 		m_FirstPoint = point; // 현재 위치를 기록한다.
 		SetCapture();		  // 이후에 나타나는 마우스 메시지를 포착한다.
-
 	}
 
 }
@@ -253,7 +249,8 @@ void CSketcherView::OnLButtonDown(UINT nFlags, CPoint point)
 
 CElement* CSketcherView::CreateElement()
 {
-	// 이 뷰에 대한 도큐먼트 포인터를 얻는다.W
+	//TRACE("CreateElement() 호출됨\n");
+	// 이 뷰에 대한 도큐먼트 포인터를 얻는다.
 	CSketcherDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc); // 포인터가 좋다는 것을 확인한다.
 
@@ -261,16 +258,24 @@ CElement* CSketcherView::CreateElement()
 	switch (pDoc->GetElementType())
 	{
 	case RECTANGLE:
+		//TRACE("요소 타입: RECTANGLE\n");
 		return new CRectangle(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
+
 	case CIRCLE:
+		//TRACE("요소 타입: CIRCLE\n");
 		return new CCircle(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
+
 	case CURVE:
+		//TRACE("요소 타입: CURVE\n");
 		return new CCurve(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
+
 	case LINE:
+		//TRACE("요소 타입: LINE\n");
 		return new CLine(m_FirstPoint, m_SecondPoint, pDoc->GetElementColor(), pDoc->GetPenWidth());
 
 	default:
 		// 무엇인가 잘못됨
+
 		AfxMessageBox("잘못된 접근", MB_OK);
 		AfxAbort();
 		return NULL;
@@ -290,6 +295,7 @@ void CSketcherView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 	{
 		CClientDC aDC(this); // 디바이스 컨텍스트를 생성한다.
 		OnPrepareDC(&aDC);	 // 원점이 조정되도록 한다.
+
 		// 둘러싸는 직사각형을 얻고, 그것을 클라이언트 좌표로 변환한다.
 		CRect aRect = static_cast<CElement*>(pHint)->GetBoundRect();
 		aDC.LPtoDP(aRect);
@@ -303,24 +309,14 @@ void CSketcherView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 
 void CSketcherView::OnInitialUpdate()
 {
+	ResetScrollSizes();		// 스크롤바를 설정한다.
 	CScrollView::OnInitialUpdate();
-
-	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
-
-	// 도큐먼트 크기를 MM_LOENGLISH에서 30x30 인치로 정의한다.
-	CSize DocSize(3000, 3000);
-
-	// 맵핑 모드와 도큐먼트 크기를 설정한다.
-	SetScrollSizes(MM_LOENGLISH, DocSize);
 }
 
 
 void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
-	// 커서 밑 요소를 찾는다.
-	if(m_MoveMode)
-	m_pSelected = SelectElement(point);
 
 	// 커서 메뉴를 생성한다.
 	CMenu aMenu;
@@ -340,7 +336,7 @@ void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 			(RED == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 		aMenu.CheckMenuItem(ID_COLOR_GREEN,
 			(GREEN == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
-		aMenu.CheckMenuItem(ID_COLOR_BLUE,
+		aMenu.CheckMenuItem(ID_COLOR_BLUE,		
 			(BLUE == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 
 		// 요소 메뉴 항목들을 검사한다.
@@ -358,7 +354,6 @@ void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 		aMenu.GetSubMenu(1)->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON,
 			point.x, point.y, this);
 	}
-	CScrollView::OnRButtonUp(nFlags, point);
 }
 
 void CSketcherView::OnRButtonDown(UINT nFlags, CPoint point)
@@ -375,8 +370,6 @@ void CSketcherView::OnRButtonDown(UINT nFlags, CPoint point)
 		GetDocument()->UpdateAllViews(0);	// 작업을 끝마친다.
 		return;
 	}
-
-	CScrollView::OnRButtonDown(nFlags, point);
 }
 
 
@@ -407,6 +400,7 @@ CElement* CSketcherView::SelectElement(CPoint aPoint)
 
 
 void CSketcherView::MoveElement(CClientDC& aDC, const CPoint& point) {
+	
 	CSize Distance = point - m_CursorPos;		// 이동 거리를 얻는다.
 	m_CursorPos = point;						// 현재의 점을 이 다음 작업에서 첫 번째로 설정한다.
 
@@ -420,8 +414,80 @@ void CSketcherView::MoveElement(CClientDC& aDC, const CPoint& point) {
 	}
 }
 
-void CSketcherView::OnSendtoback()
+
+void CSketcherView::OnMove()
+{
+	CClientDC aDC(this);
+	OnPrepareDC(&aDC);              // Set up the device context
+	GetCursorPos(&m_CursorPos);     // Get cursor position in screen coords
+	ScreenToClient(&m_CursorPos);   // Convert to client coords
+	aDC.DPtoLP(&m_CursorPos);       // Convert to logical
+	m_FirstPos = m_CursorPos;       // Remember first position
+	m_MoveMode = TRUE;              // Start move mode
+}
+
+void CSketcherView::OnDelete()
+{
+	if (m_pSelected)
+	{
+		CSketcherDoc* pDoc = GetDocument();  // Get the document pointer
+		pDoc->DeleteElement(m_pSelected);    // Delete the element
+		pDoc->UpdateAllViews(0);             // Redraw all the views
+		m_pSelected = 0;                     // Reset selected element ptr
+	}
+}
+
+
+void CSketcherView::OnSendtoBack()
 {
 	GetDocument()->SendToBack(m_pSelected);
 
 }
+
+void CSketcherView::OnViewScale()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	CScaleDialog aDlg;		// 대화 상자 객체 생성
+	aDlg.m_Scale = m_Scale;	// view scale을 대화상자에 전달
+	if (aDlg.DoModal() == IDOK)
+	{
+		m_Scale = aDlg.m_Scale; // 새로운 scale 얻는다.
+		Invalidate(0);			// 전체 윈도우 무효화
+	}
+}
+
+
+void CSketcherView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
+{
+	// TODO: 여기에 특수화된 코드를 추가 및/또는 기본 클래스를 호출합니다.
+
+	CScrollView::OnPrepareDC(pDC, pInfo);
+	CSketcherDoc* pDoc = GetDocument();
+	pDC->SetMapMode(MM_ANISOTROPIC);	// 맵 모드 설정
+	CSize DocSize = pDoc->GetDocSize();	// 도큐먼트 크기를 얻는다.
+
+	// MM_LOENGLISH를 원하기 때문에 y 범위는 음이 되어야 한다.
+	DocSize.cy = -DocSize.cy;			// y의 부호를 변경한다.
+	pDC->SetWindowExt(DocSize);			// 이제, 윈도우 범위를 설정한다.
+
+	// x와 y에서의 인치당 픽셀 개수를 얻는다.
+	int xLogPixels = pDC->GetDeviceCaps(LOGPIXELSX);
+	int yLogPixels = pDC->GetDeviceCaps(LOGPIXELSY);
+
+	// x와 y에서의 뷰 포트 범위를 계산한다.
+	int xExtent = DocSize.cx * m_Scale * xLogPixels / 100;
+	int yExtent = DocSize.cy * m_Scale * yLogPixels / 100;
+
+	pDC->SetViewportExt(xExtent, -yExtent);
+}
+
+void CSketcherView::ResetScrollSizes()
+{
+	// TODO: 여기에 구현 코드 추가.
+	CClientDC aDC(this);
+	OnPrepareDC(&aDC);				// 디바이스 컨텍스트를 설정한다.
+	CSize DocSize = GetDocument()->GetDocSize();	// 도큐먼트 크기를 얻는다.
+	aDC.LPtoDP(&DocSize);				// 크기를 픽셀 단위로 얻는다.
+	SetScrollSizes(MM_TEXT, DocSize);	//스크롤바들을 설정한다
+}
+

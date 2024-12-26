@@ -97,6 +97,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -189,6 +191,7 @@
   <ItemGroup>
     <ClInclude Include="ChildFrm.h" />
     <ClInclude Include="ClassView.h" />
+    <ClInclude Include="CPenDialog.h" />
     <ClInclude Include="Elements.h" />
     <ClInclude Include="FileView.h" />
     <ClInclude Include="framework.h" />
@@ -210,6 +213,7 @@
     </ClCompile>
     <ClCompile Include="ChildFrm.cpp" />
     <ClCompile Include="ClassView.cpp" />
+    <ClCompile Include="CPenDialog.cpp" />
     <ClCompile Include="Elements.cpp" />
     <ClCompile Include="FileView.cpp" />
     <ClCompile Include="MainFrm.cpp" />
@@ -227,6 +231,7 @@
     <ClCompile Include="ViewTree.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\ribbon1.mfcribbon-ms" />
     <None Include="res\Sketcher.rc2" />
     <None Include="Sketcher.reg" />
   </ItemGroup>

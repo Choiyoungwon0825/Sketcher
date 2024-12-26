@@ -17,6 +17,7 @@ protected:
 	BOOL m_MoveMode;			// 요소 플래그 이동
 	CPoint m_CursorPos;			// 커서 위치
 	CPoint m_FirstPos;			// move 작업에서의 원래 위치
+	int m_Scale; // 현재 view Scale
 
 // 특성입니다.
 public:
@@ -53,10 +54,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
-	afx_msg void OnColorBlack();
-	afx_msg void OnColorBlue();
-	afx_msg void OnColorGreen();
-	afx_msg void OnColorRed();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -64,6 +61,12 @@ public:
 	virtual void OnInitialUpdate();
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnSendtoBack();
+	void OnViewScale();
+	afx_msg void OnMove();
+	afx_msg void OnDelete();
+	void ResetScrollSizes();
+	virtual void OnPrepareDC(CDC* pDC, CPrintInfo* pInfo = NULL);
 };
 
 #ifndef _DEBUG  // SketcherView.cpp의 디버그 버전

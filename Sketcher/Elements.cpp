@@ -11,7 +11,7 @@ CLine::CLine(const CPoint& Start, const CPoint& End, const COLORREF& Color, cons
 	m_StartPoint = Start; // 선의 시작점 설정
 	m_EndPoint = End; // 선의 끝점 설정
 	m_Color = Color; // 선의 색깔 설정
-	m_Pen = 1; // 선의 폭 설정
+	m_Pen = PenWidth; // 선의 폭 설정
 
 	// 둘러싸는 직사각형을 정의한다.
 	m_EnclosingRect = CRect(Start, End);
@@ -33,6 +33,7 @@ void CLine::Draw(CDC* pDC, const CElement* pElement) const
 		AfxMessageBox("Pen creation failed drawing a line", MB_OK);
 		AfxAbort();
 	}
+	//TRACE("펜그려짐\n");
 
 
 	CPen* pOldPen = pDC->SelectObject(&aPen);	// 펜을 선택한다.
@@ -79,7 +80,7 @@ CCurve::CCurve(const CPoint& FirstPoint, const CPoint& SecondPoint, const COLORR
 
 
 	m_Color = Color; // 색 저장
-	m_Pen = 1;		// 펜 폭 설정
+	m_Pen = PenWidth;		// 펜 폭 설정
 
 	// MM_TEXT 
 	m_EnclosingRect = CRect(FirstPoint, SecondPoint);
@@ -88,7 +89,7 @@ CCurve::CCurve(const CPoint& FirstPoint, const CPoint& SecondPoint, const COLORR
 
 
 // 곡선을 그린다.
-void CCurve::Draw(CDC* pDC) const
+void CCurve::Draw(CDC* pDC, const CElement* pElement) const
 {
 	// 이 객체에 대한 펜을 생성하며, 그것을 객체 색과 1픽셀 선의 폭으로 초기화한다.
 	CPen aPen;
@@ -99,7 +100,7 @@ void CCurve::Draw(CDC* pDC) const
 		AfxMessageBox("Pen creation failed drawing a curve", MB_OK);
 		AfxAbort();
 	}
-
+	//TRACE("커브 그려짐\n");
 	CPen* pOldPen = pDC->SelectObject(&aPen); // 펜을 선택한다.
 
 	// 이제 곡선을 그린다.
@@ -119,7 +120,7 @@ void CCurve::Draw(CDC* pDC) const
 }
 
 // CRectangle 객체를 그린다.
-void CRectangle::Draw(CDC* pDC) const
+void CRectangle::Draw(CDC* pDC, const CElement* pElement) const
 {
 	// 이 객체에 대한 펜을 생성하며, 그것을 객체 색깔과 선 폭으로 초기화한다.
 	CPen aPen;
@@ -130,6 +131,7 @@ void CRectangle::Draw(CDC* pDC) const
 		AfxMessageBox("Pen creation failed drawing a line", MB_OK);
 		AfxAbort();
 	}
+	//TRACE("네모 그려짐\n");
 
 	// 펜을 선택한다.
 	CPen* pOldPen = pDC->SelectObject(&aPen);
@@ -144,7 +146,7 @@ void CRectangle::Draw(CDC* pDC) const
 }
 
 // 원을 그린다.
-void CCircle::Draw(CDC* pDC) const
+void CCircle::Draw(CDC* pDC, const CElement* pElement) const
 {
 	// 이 객체에 대한 펜을 생성하며, 그것을 객체 색깔과 선 폭으로 초기화한다.
 	CPen aPen;
@@ -155,6 +157,7 @@ void CCircle::Draw(CDC* pDC) const
 		AfxMessageBox("Pen creation failed drawing a line", MB_OK);
 		AfxAbort();
 	}
+	//TRACE("원 그려짐\n");
 
 	// 펜을 선택한다.
 	CPen* pOldPen = pDC->SelectObject(&aPen);
@@ -215,16 +218,9 @@ CRect CElement::GetBoundRect() const
 	BoundingRect = m_EnclosingRect; // 둘러싸는 직사각형 저장
 
 	// 직사각형을 펜의 폭만큼 증가시킨다.
-	//int Offset = m_Pen == 0 ? 1 : m_Pen;// 폭은 적어도 1이 되어야한다.
+	int Offset = m_Pen == 0 ? 1 : m_Pen;// 폭은 적어도 1이 되어야한다.
 
-	//BoundingRect.InflateRect(Offset, Offset);
-
-	//BoundingRect = m_EnclosingRect;
-	//BoundingRect.top -= m_Pen;
-	//BoundingRect.left -= m_Pen;
-	//BoundingRect.bottom += m_Pen;
-	//BoundingRect.right += m_Pen;
-
+	BoundingRect.InflateRect(Offset, Offset);
 
 	return BoundingRect;			// 경계를 짓는 직사각형을 리턴한다.
 }

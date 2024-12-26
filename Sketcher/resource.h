@@ -4,6 +4,7 @@
 //
 #define IDOK                            1
 #define IDOK2                           2
+#define IDD_PENWIDTH_DLG                9
 #define IDP_OLE_INIT_FAILED             100
 #define IDD_ABOUTBOX                    100
 #define IDR_POPUP_EDIT                  119
@@ -75,6 +76,16 @@
 #define IDS_EDIT_MENU                   306
 #define IDI_ICON1                       310
 #define IDR_CURSOR_MENU                 314
+#define IDR_RIBBON1                     319
+#define IDD_SCALE_DLG                   322
+#define IDC_PENWIDTH0                   1000
+#define IDC_PENWIDTH1                   1001
+#define IDC_SPIN_SCALE                  1001
+#define IDC_SCALE                       1002
+#define IDC_PENWIDTH4                   1004
+#define IDC_PENWIDTH3                   1006
+#define IDC_PENWIDTH2                   1007
+#define IDC_PENWIDTH5                   1008
 #define ID_LINE                         32771
 #define ID_ELEMENT_LINE                 32772
 #define ID_ELMENT_LINE                  32773
@@ -99,14 +110,22 @@
 #define ID_Menu                         32802
 #define ID_ELEMENT_SENDTOBACK           32803
 #define ID_SENDTOBACK                   32804
+#define ID_BUTTON2                      32805
+#define ID_ELEMENT_DD                   32806
+#define ID_ELEMENT_WIDTH                32807
+#define ID_PENWIDTH                     32808
+#define ID_BUTTON32810                  32810
+#define ID_32811                        32811
+#define ID_32812                        32812
+#define ID_VIEW_SCALE                   32813
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        315
-#define _APS_NEXT_COMMAND_VALUE         32805
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_RESOURCE_VALUE        324
+#define _APS_NEXT_COMMAND_VALUE         32814
+#define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

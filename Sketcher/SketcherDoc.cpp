@@ -7,7 +7,7 @@
 // 해당 프로젝트와 문서 코드를 공유하도록 해 줍니다.
 #ifndef SHARED_HANDLERS
 #include "Sketcher.h"
-
+#include "CPenDialog.h"
 #endif
 
 #include "SketcherDoc.h"
@@ -39,6 +39,7 @@ BEGIN_MESSAGE_MAP(CSketcherDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_ELEMENT_CURVE, &CSketcherDoc::OnUpdateElementCurve)
 	ON_UPDATE_COMMAND_UI(ID_ELEMENT_LINE, &CSketcherDoc::OnUpdateElementLine)
 	ON_UPDATE_COMMAND_UI(ID_ELEMENT_RECTANGLE, &CSketcherDoc::OnUpdateElementRectangle)
+	ON_COMMAND(ID_PENWIDTH, &CSketcherDoc::OnPenwidth)
 END_MESSAGE_MAP()
 
 
@@ -49,7 +50,8 @@ CSketcherDoc::CSketcherDoc() noexcept
 	// TODO: 여기에 일회성 생성 코드를 추가합니다.
 	m_Element = LINE;
 	m_Color = BLACK;
-
+	m_PenWidth = 0; // 1픽셀 폭의 펜을 설정한다.
+	m_DocSize = CSize(3000, 3000); // 초기 도큐먼트 사이즈를 30x30인치로 설정한다.
 }
 
 CSketcherDoc::~CSketcherDoc()
@@ -166,6 +168,7 @@ void CSketcherDoc::Dump(CDumpContext& dc) const
 void CSketcherDoc::OnColorBlack()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	TRACE("BLACK\n");
 	m_Color = BLACK; // 드로잉 색을 검은색으로 설정
 	
 }
@@ -174,12 +177,14 @@ void CSketcherDoc::OnColorBlack()
 void CSketcherDoc::OnColorBlue()
 {
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	TRACE("BLUE\n");
 	m_Color = BLUE;
 }
 
 
 void CSketcherDoc::OnColorGreen()
 {
+	TRACE("GREEN\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Color = GREEN;
 }
@@ -187,6 +192,7 @@ void CSketcherDoc::OnColorGreen()
 
 void CSketcherDoc::OnColorRed()
 {
+	TRACE("RED\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Color = RED;
 }
@@ -194,6 +200,7 @@ void CSketcherDoc::OnColorRed()
 
 void CSketcherDoc::OnElementCircle()
 {
+	TRACE("CIRCLE\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Element = CIRCLE;
 }
@@ -201,6 +208,7 @@ void CSketcherDoc::OnElementCircle()
 
 void CSketcherDoc::OnElementCurve()
 {
+	TRACE("CURVE\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Element = CURVE;
 }
@@ -208,6 +216,7 @@ void CSketcherDoc::OnElementCurve()
 
 void CSketcherDoc::OnElementLine()
 {
+	TRACE("LINE\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Element = LINE;
 }
@@ -215,6 +224,7 @@ void CSketcherDoc::OnElementLine()
 
 void CSketcherDoc::OnElementRectangle()
 {
+	TRACE("RECTANGLE\n");
 	// TODO: 여기에 명령 처리기 코드를 추가합니다.
 	m_Element = RECTANGLE;
 }
@@ -288,5 +298,29 @@ void CSketcherDoc::DeleteElement(CElement* pElement)
 }
 
 void CSketcherDoc::SendToBack(CElement* pElement) {
+	
+	if (pElement) {
+		POSITION aPosition = m_ElementList.Find(pElement);
+		m_ElementList.RemoveAt(aPosition);
 
+		m_ElementList.AddHead(pElement);
+			
+	}
+
+}
+
+
+void CSketcherDoc::OnPenwidth()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	CPenDialog aDlg;	// 로컬 데이터 객체를 생성한다.
+
+	// 대화상자 안에 있는 펜의 폭을 도큐먼트 안에 저장되어 있는 그것으로 설정한다.
+	aDlg.m_PenWidth = m_PenWidth;
+
+	// 데이터를 modal로서 나타낸다
+	// OK를 통해 닫혀졌을 때 펜의 폭을 취한다.
+	if (aDlg.DoModal() == IDOK) 
+		m_PenWidth = aDlg.m_PenWidth;
+	
 }
