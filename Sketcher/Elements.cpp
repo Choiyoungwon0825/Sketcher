@@ -4,6 +4,7 @@
 #include "Elements.h"
 #include <math.h>
 
+
 // 멤버 함수들에 대한 정의를 여기에 추가.
 // CLine 클래스 컨스트럭터
 CLine::CLine(const CPoint& Start, const CPoint& End, const COLORREF& Color, const int& PenWidth)
