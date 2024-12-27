@@ -40,6 +40,8 @@ BEGIN_MESSAGE_MAP(CSketcherDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_ELEMENT_LINE, &CSketcherDoc::OnUpdateElementLine)
 	ON_UPDATE_COMMAND_UI(ID_ELEMENT_RECTANGLE, &CSketcherDoc::OnUpdateElementRectangle)
 	ON_COMMAND(ID_PENWIDTH, &CSketcherDoc::OnPenwidth)
+	ON_COMMAND(ID_ELEMENT_TEXT, &CSketcherDoc::OnElementText)
+	ON_UPDATE_COMMAND_UI(ID_ELEMENT_TEXT, &CSketcherDoc::OnUpdateElementText)
 END_MESSAGE_MAP()
 
 
@@ -285,6 +287,8 @@ void CSketcherDoc::OnUpdateElementRectangle(CCmdUI *pCmdUI)
 	pCmdUI->SetCheck(m_Element == RECTANGLE);
 }
 
+
+
 void CSketcherDoc::DeleteElement(CElement* pElement)
 {
 	if (pElement)
@@ -296,6 +300,7 @@ void CSketcherDoc::DeleteElement(CElement* pElement)
 		delete pElement;		// 힙으로부터 요소를 삭제한다.
 	}
 }
+
 
 void CSketcherDoc::SendToBack(CElement* pElement) {
 	
@@ -323,4 +328,19 @@ void CSketcherDoc::OnPenwidth()
 	if (aDlg.DoModal() == IDOK) 
 		m_PenWidth = aDlg.m_PenWidth;
 	
+}
+
+
+void CSketcherDoc::OnElementText()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	m_Element = TEXT;
+}
+
+
+void CSketcherDoc::OnUpdateElementText(CCmdUI *pCmdUI)
+{
+	// TODO: 여기에 명령 업데이트 UI 처리기 코드를 추가합니다.
+	// 현재 요소가 텍스트라면 체크된 것으로 설정한다.
+	pCmdUI->SetCheck(m_Element == TEXT);
 }

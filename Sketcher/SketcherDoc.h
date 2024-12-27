@@ -110,4 +110,6 @@ protected:
 #endif // SHARED_HANDLERS
 public:
 	afx_msg void OnPenwidth();
+	afx_msg void OnElementText();
+	afx_msg void OnUpdateElementText(CCmdUI *pCmdUI);
 };

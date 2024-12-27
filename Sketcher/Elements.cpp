@@ -224,3 +224,32 @@ CRect CElement::GetBoundRect() const
 
 	return BoundingRect;			// 경계를 짓는 직사각형을 리턴한다.
 }
+
+CText::CText(const CPoint& Start, const CPoint& End, const CString String, const COLORREF& Color)
+{
+	m_Pen = 1;					// 범위를 정하는 직사각형에 대한 펜의 폭
+	m_Color = Color;			// 텍스트에 대한 색깔을 설정한다.
+	m_String = String;			// 문자열을 복사한다.
+	m_StartPoint = Start;		// 문자열의 시작점
+
+	m_EnclosingRect = CRect(Start, End);
+	m_EnclosingRect.NormalizeRect();
+}
+
+void CText::Draw(CDC* pDC, const CElement* pElement) const
+{
+	COLORREF Color(m_Color);		// 요소 색깔로 초기화한다.
+
+	if (this == pElement)
+		Color = SELECT_COLOR;		// 선택된 색깔을 설정한다.
+
+	// 텍스트 색깔을 설정하며 텍스트를 출력한다.
+	pDC->SetTextColor(Color);
+	pDC->TextOutA(m_StartPoint.x, m_StartPoint.y, m_String);
+}
+
+void CText::Move(const CSize& aSize)
+{
+	m_StartPoint += aSize;			// 시작점 이동
+	m_EnclosingRect += aSize;		// 직사각형 이동
+}

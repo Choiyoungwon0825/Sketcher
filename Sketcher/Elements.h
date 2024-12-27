@@ -47,7 +47,7 @@ protected:
 class CRectangle : public CElement
 {
 public:
-	virtual void Draw(CDC* pDC ,const CElement* pElement = 0) const; // 직사각형을 나타내는 함수
+	virtual void Draw(CDC* pDC, const CElement* pElement = 0) const; // 직사각형을 나타내는 함수
 	virtual void Move(const CSize& aSize); // 요소를 이동시키는 함수
 
 	// 직사각형 객체에 대한 컨스트럭터
@@ -89,7 +89,27 @@ protected:
 	// 여기에 위치하게 될 CCurve 데이터 멤버
 
 	CList<CPoint, const CPoint&> m_PointList; // Type safe 포인트 리스트
-	
+
 	CCurve() {} // 디폴트 컨스트럭터 - 사용되어서는 안된다.
+};
+
+class CText :public CElement 
+{
+public:
+	// 텍스트 요소에 대한 컨스트럭터
+
+	CText(const CPoint & Start, const CPoint & End, const CString String, const COLORREF & Color);
+	// 텍스트 요소를 나타내는 함수
+	virtual void Draw(CDC* pDC, const CElement* pElement = NULL) const;
+
+
+
+	virtual void Move(const CSize& Size);	// 텍스트 요소를 이동시킨다.
+
+protected:
+	CPoint m_StartPoint;	// 텍스트 요소의 위치
+	CString m_String;		// 나타낼 텍스트
+	CText() {}				// 디폴트 컨스트럭터
+
 };
 #endif

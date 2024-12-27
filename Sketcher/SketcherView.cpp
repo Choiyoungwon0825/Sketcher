@@ -13,7 +13,9 @@
 #include "SketcherDoc.h"
 #include "SketcherView.h"
 #include "Elements.h"
+#include "ChildFrm.h"
 #include "CScaleDialog.h"
+#include "CTextDialog.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -239,6 +241,28 @@ void CSketcherView::OnLButtonDown(UINT nFlags, CPoint point)
 		GetDocument()->UpdateAllViews(0); // 모든 뷰들을 다시 그린다.
 	}
 	else {
+		CSketcherDoc* pDoc = GetDocument(); // 도큐먼트 포인터를 얻는다.
+		if (pDoc->GetElementType() == TEXT)
+		{
+			CTextDialog aDlg;
+			if (aDlg.DoModal() == IDOK)
+			{
+				// OK로 종료한다. 그러므로 텍스트 요소를 생성한다.
+				CSize TextExtent = aDC.GetTextExtent(aDlg.m_TextString);
+
+				// 텍스트 직사각형의 오른쪽 하단을 얻는다. - MM_LOENGLISH
+				CPoint BottomRt(point.x + TextExtent.cx, point.y - TextExtent.cy);
+				CText* pTextElement = new CText(point, BottomRt, aDlg.m_TextString, pDoc->GetElementColor());
+
+				// 요소를 도큐먼트에 추가한다
+				pDoc->AddElement(pTextElement);
+
+				// 모든 뷰를 업데이트시킨다.
+				pDoc->UpdateAllViews(0, 0, pTextElement);
+			}
+
+			return;
+		}
 		m_FirstPoint = point; // 현재 위치를 기록한다.
 		SetCapture();		  // 이후에 나타나는 마우스 메시지를 포착한다.
 	}
@@ -322,7 +346,7 @@ void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 	CMenu aMenu;
 	aMenu.LoadMenu(IDR_CURSOR_MENU);		// 커서 메뉴를 로드한다.
 	ClientToScreen(&point);					// 화면 좌표호 변환한다.
-	
+
 	//팝업을 커서 위치에 나타낸다.
 	if (m_pSelected)
 		aMenu.GetSubMenu(0)->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON,
@@ -336,7 +360,7 @@ void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 			(RED == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 		aMenu.CheckMenuItem(ID_COLOR_GREEN,
 			(GREEN == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
-		aMenu.CheckMenuItem(ID_COLOR_BLUE,		
+		aMenu.CheckMenuItem(ID_COLOR_BLUE,
 			(BLUE == Color ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 
 		// 요소 메뉴 항목들을 검사한다.
@@ -349,7 +373,8 @@ void CSketcherView::OnRButtonUp(UINT nFlags, CPoint point)
 			(CIRCLE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 		aMenu.CheckMenuItem(ID_ELEMENT_CURVE,
 			(CURVE == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
-
+		aMenu.CheckMenuItem(ID_ELEMENT_TEXT,
+			(TEXT == ElementType ? MF_CHECKED : MF_UNCHECKED) | MF_BYCOMMAND);
 		// 빠른 팝업을 나타낸다.
 		aMenu.GetSubMenu(1)->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON,
 			point.x, point.y, this);
@@ -400,7 +425,7 @@ CElement* CSketcherView::SelectElement(CPoint aPoint)
 
 
 void CSketcherView::MoveElement(CClientDC& aDC, const CPoint& point) {
-	
+
 	CSize Distance = point - m_CursorPos;		// 이동 거리를 얻는다.
 	m_CursorPos = point;						// 현재의 점을 이 다음 작업에서 첫 번째로 설정한다.
 
@@ -451,7 +476,18 @@ void CSketcherView::OnViewScale()
 	aDlg.m_Scale = m_Scale;	// view scale을 대화상자에 전달
 	if (aDlg.DoModal() == IDOK)
 	{
-		m_Scale = aDlg.m_Scale; // 새로운 scale 얻는다.
+		m_Scale = 1 + aDlg.m_Scale; // 새로운 scale 얻는다.
+
+		// 이 뷰에 대한 프레임 윈도우를 얻는다.
+		CChildFrame* viewFrame = static_cast<CChildFrame*>(GetParentFrame());
+
+		// 메시지 문자열을 생성한다.
+		CString StatusMsg("View Scale:");
+		StatusMsg += static_cast<char>('0' + m_Scale);
+
+		// 문자열을 상태바에 쓴다.
+		viewFrame->m_StatusBar.GetStatusBarCtrl().SetText(StatusMsg, 0, 0);
+		ResetScrollSizes();
 		Invalidate(0);			// 전체 윈도우 무효화
 	}
 }

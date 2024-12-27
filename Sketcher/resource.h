@@ -77,13 +77,15 @@
 #define IDI_ICON1                       310
 #define IDR_CURSOR_MENU                 314
 #define IDR_RIBBON1                     319
-#define IDD_SCALE_DLG                   322
+#define IDD_SCALE_DLG                   324
+#define IDD_TEXT_DLG                    326
 #define IDC_PENWIDTH0                   1000
 #define IDC_PENWIDTH1                   1001
-#define IDC_SPIN_SCALE                  1001
-#define IDC_SCALE                       1002
+#define IDC_SCALELIST                   1003
 #define IDC_PENWIDTH4                   1004
+#define IDC_SPIN1                       1005
 #define IDC_PENWIDTH3                   1006
+#define IDC_EDITTEXT                    1006
 #define IDC_PENWIDTH2                   1007
 #define IDC_PENWIDTH5                   1008
 #define ID_LINE                         32771
@@ -118,14 +120,15 @@
 #define ID_32811                        32811
 #define ID_32812                        32812
 #define ID_VIEW_SCALE                   32813
+#define ID_ELEMENT_TEXT                 32814
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        324
-#define _APS_NEXT_COMMAND_VALUE         32814
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_RESOURCE_VALUE        328
+#define _APS_NEXT_COMMAND_VALUE         32816
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

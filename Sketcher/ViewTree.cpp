@@ -22,7 +22,6 @@ CViewTree::~CViewTree()
 
 BEGIN_MESSAGE_MAP(CViewTree, CTreeCtrl)
 END_MESSAGE_MAP()
-
 /////////////////////////////////////////////////////////////////////////////
 // CViewTree 메시지 처리기
 

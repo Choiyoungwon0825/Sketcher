@@ -9,6 +9,7 @@ class CChildFrame : public CMDIChildWndEx
 	DECLARE_DYNCREATE(CChildFrame)
 public:
 	CChildFrame() noexcept;
+	CStatusBar m_StatusBar;	// 상태바 객체
 
 // 특성입니다.
 protected:
@@ -32,4 +33,6 @@ public:
 // 생성된 메시지 맵 함수
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 };

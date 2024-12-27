@@ -66,6 +66,12 @@
     <ClInclude Include="CPenDialog.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="CScaleDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="CTextDialog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sketcher.cpp">
@@ -104,10 +110,13 @@
     <ClCompile Include="Elements.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="CArray개념.cpp">
+    <ClCompile Include="CPenDialog.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="CPenDialog.cpp">
+    <ClCompile Include="CScaleDialog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="CTextDialog.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
